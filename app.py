@@ -1,8 +1,8 @@
-
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
+import openai
 import os
 
 app = Flask(__name__)
@@ -10,9 +10,12 @@ app = Flask(__name__)
 # 環境変数から取得
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
+
+openai.api_key = OPENAI_API_KEY
 
 @app.route("/")
 def home():
@@ -32,13 +35,14 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    text = event.message.text
-    reply = f"あなたは「{text}」と言いました！"
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply)
-    )
+    user_message = event.message.text
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # ← ここがポイント
-    app.run(host="0.0.0.0", port=port)
+    # OpenAI ChatGPTに問い合わせ
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # GPT-4にしたければ "gpt-4"
+            messages=[
+                {"role": "user", "content": user_message}
+            ]
+        )
+        reply_text = response['choic]()_
