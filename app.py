@@ -37,12 +37,26 @@ def callback():
 def handle_message(event):
     user_message = event.message.text
 
-    # OpenAI ChatGPTに問い合わせ
     try:
+        # OpenAI APIへの問い合わせ
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # GPT-4にしたければ "gpt-4"
+            model="gpt-3.5-turbo",  # gpt-4 にも変更可能
             messages=[
                 {"role": "user", "content": user_message}
-            ]
+            ],
+            max_tokens=1000
         )
-        reply_text = response['choic]()_
+        reply_text = response['choices'][0]['message']['content'].strip()
+
+    except Exception as e:
+        reply_text = f"エラーが発生しました: {str(e)}"
+
+    # LINEに返信
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_text)
+    )
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
